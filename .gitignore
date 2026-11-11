@@ -48,6 +48,8 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+# ...but keep the logue-sdk unit Makefile at the project root
+!/Makefile
 install_manifest.txt
 compile_commands.json
 
