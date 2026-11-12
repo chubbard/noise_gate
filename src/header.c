@@ -50,25 +50,29 @@ const __unit_header genericfx_unit_header_t unit_header = {
     .dev_id = 0x0,                                            // Developer ID. See https://github.com/korginc/logue-sdk/blob/master/developer_ids.md
     .unit_id = 0x0U,                                          // ID for this unit. Scoped within the context of a given dev_id.
     .version = 0x00010000U,                                   // This unit's version: major.minor.patch (major<<16 minor<<8 patch).
-    .name = "dummy",                                          // Name for this unit, will be displayed on device
-    .num_params = 4,                                          // Number of valid parameter descriptors. (max. 8)
-    
+    .name = "NOISEGATE",                                      // Name for this unit, will be displayed on device
+    .num_params = 5,                                          // Number of valid parameter descriptors. (max. 8)
+
     .params = {
       // Format: min, max, center (unused), default, type, frac. bits, frac. mode, <reserved>, name
-      
-      // See common/runtime.h for type enum and unit_param_t structure
+      // Note: keep defaults in sync with Effect::Params::reset() in effect.h
 
-      // Examples of simple numeric parameters
-      {0, 1023, 0, 0, k_unit_param_type_none, 0, 0, 0, {"PARAM1"}},
-      {0, 1023, 0, 0, k_unit_param_type_none, 0, 0, 0, {"PARAM2"}},
-      
-      // Example of a parameter with negative values and one fractional digit (base 10), using the drywet display type 
-      {-1000, 1000, 0, 0, k_unit_param_type_drywet, 1, 1, 0, {"DEPTH"}},
+      // Attack: time for the gate to open, 0 .. 2000 ms
+      {0, 2000, 0, 5, k_unit_param_type_msec, 0, 0, 0, {"ATTACK"}},
 
-      // Example of a strings type parameter
-      {0, 3, 0, 1, k_unit_param_type_strings, 0, 0, 0, {"PARAM4"}},
-      
-      {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
+      // Release: time for the gate to close, 0 .. 2000 ms
+      {0, 2000, 0, 100, k_unit_param_type_msec, 0, 0, 0, {"RELEASE"}},
+
+      // Reduction: gain applied while the gate is closed, 0 dB (no change) .. -144 dB (silence)
+      {-144, 0, 0, -144, k_unit_param_type_db, 0, 0, 0, {"REDUCE"}},
+
+      // Gate type: tempo divisions, MIDI CC (via GATE), or XY pad touch
+      {0, 5, 0, 1, k_unit_param_type_strings, 0, 0, 0, {"TYPE"}},
+
+      // Gate control for CC mode: gate is open at >= 50%. Assign it to Pad X/Y or Depth
+      // on the device, then drive it with that control's MIDI CC (CC value >= 64 opens).
+      {0, 100, 0, 0, k_unit_param_type_percent, 0, 0, 0, {"GATE"}},
+
       {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
       {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
       {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}}},
@@ -76,22 +80,24 @@ const __unit_header genericfx_unit_header_t unit_header = {
   .default_mappings = {
     // By default, the parameters described above will be mapped to controls as described below.
     // These assignments can be overriden by the user.
-    
+
     // Format: assign, curve, curve polarity, min, max, default value
 
-    // PARAM1 mapped full range to X axis of control pad, initialized at 256
-    {k_genericfx_param_assign_x, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 1023, 256},
+    // ATTACK on the X axis, exponential curve so short times get more resolution
+    {k_genericfx_param_assign_x, k_genericfx_curve_exp, k_genericfx_curve_unipolar, 0, 2000, 5},
 
-    // PARAM2 mapped half range to Y axis of control pad, initialized at 512
-    {k_genericfx_param_assign_y, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 512, 1023, 512},
+    // RELEASE on the Y axis, exponential curve
+    {k_genericfx_param_assign_y, k_genericfx_curve_exp, k_genericfx_curve_unipolar, 0, 2000, 100},
 
-    // DEPTH mapped full range to depth control, with a bipolar exponential curve and i initialized at 0
-    {k_genericfx_param_assign_depth, k_genericfx_curve_exp, k_genericfx_curve_bipolar, -1000, 1000, 0},
+    // REDUCE on the depth control
+    {k_genericfx_param_assign_depth, k_genericfx_curve_linear, k_genericfx_curve_unipolar, -144, 0, -144},
 
-    // PARAM4 set to the fixed value of 1
-    {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 3, 1},
-    
-    {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 0, 0},
+    // TYPE not assigned to a control, defaults to 1/4
+    {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 5, 1},
+
+    // GATE not assigned by default (assign it on the device to use CC mode)
+    {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 100, 0},
+
     {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 0, 0},
     {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 0, 0},
     {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 0, 0}

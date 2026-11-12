@@ -10,10 +10,10 @@ PROJECT_TYPE := genericfx
 #
 
 # C sources 
-UCSRC = header.c
+UCSRC = $(SRCDIR)/header.c
 
 # C++ sources 
-UCXXSRC = unit.cc
+UCXXSRC = $(SRCDIR)/unit.cc
 
 # List ASM source files here
 UASMSRC = 
@@ -24,7 +24,7 @@ UASMXSRC =
 # Include Paths
 #
 
-UINCDIR  = 
+UINCDIR  = $(SRCDIR)
 
 ##############################################################################
 # Library Paths

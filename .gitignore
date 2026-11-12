@@ -48,6 +48,8 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+# ...but keep the logue-sdk unit Makefile at the project root
+!/Makefile
 install_manifest.txt
 compile_commands.json
 
@@ -66,3 +68,6 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# logue-sdk build output
+*.nts3unit

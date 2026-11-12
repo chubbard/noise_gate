@@ -7,32 +7,43 @@ MKFILE_PATH := $(realpath $(lastword $(MAKEFILE_LIST)))
 # Project root
 PROJECT_ROOT ?= $(dir $(MKFILE_PATH))
 
+# Unit sources live in src/
+SRCDIR ?= $(PROJECT_ROOT)src
+
+# This project lives outside of the logue-sdk tree, so point at the SDK checkout.
+# Defaults to a sibling directory (../logue-sdk); override with
+#   make LOGUE_SDK_DIR=/path/to/logue-sdk
+LOGUE_SDK_DIR ?= $(realpath $(PROJECT_ROOT)/../logue-sdk)
+
+# NTS-3 kaoss pad platform directory inside the SDK
+PLATFORMDIR ?= $(LOGUE_SDK_DIR)/platform/nts-3_kaoss
+
 # Common includes
-COMMON_INC_PATH ?= $(realpath $(PROJECT_ROOT)/../common/)
+COMMON_INC_PATH ?= $(realpath $(PLATFORMDIR)/common/)
 
 # Common sources
-COMMON_SRC_PATH ?= $(realpath $(PROJECT_ROOT)/../common/)
+COMMON_SRC_PATH ?= $(realpath $(PLATFORMDIR)/common/)
 
 # Installation directory
 INSTALLDIR ?= $(PROJECT_ROOT)
 
 # Tools directory
-TOOLSDIR ?= $(PROJECT_ROOT)/../../../tools
+TOOLSDIR ?= $(LOGUE_SDK_DIR)/tools
 
 # External library directory
-EXTDIR ?= $(PROJECT_ROOT)/../../ext
+EXTDIR ?= $(LOGUE_SDK_DIR)/platform/ext
 
 # CMSIS library location
 CMSISDIR ?= $(EXTDIR)/CMSIS/CMSIS
 
 # Linker scripts location
-LDDIR ?= $(PROJECT_ROOT)/../ld
+LDDIR ?= $(PLATFORMDIR)/ld
 
 ##############################################################################
 # Include custom project configuration and sources
 #
 
-include config.mk
+include $(PROJECT_ROOT)config.mk
 
 ##############################################################################
 # Common defaults
@@ -137,8 +148,8 @@ LIBDIR := $(patsubst %,-I%,$(DLIBDIR) $(ULIBDIR))
 ##############################################################################
 # WebAssembly compiler and binding tools
 #
-SANDBOXDIR ?= $(PROJECT_ROOT)/../../../websim
-WASMSRC := wasm.cc $(UCSRC) $(UCXXSRC) $(wildcard $(PROJECT_ROOT)/../../../websim/dsp/*.c) $(wildcard $(PROJECT_ROOT)/../../../websim/dsp/*.cpp)
+SANDBOXDIR ?= $(LOGUE_SDK_DIR)/websim
+WASMSRC := $(SRCDIR)/wasm.cc $(UCSRC) $(UCXXSRC) $(wildcard $(SANDBOXDIR)/dsp/*.c) $(wildcard $(SANDBOXDIR)/dsp/*.cpp)
 WASMDIR := $(PROJECT_ROOT)/sim
 DINCDIR += $(TOOLSDIR)/emsdk/upstream/emscripten/system/include
 EMCC_BIN_PATH := $(TOOLSDIR)/emsdk/upstream/emscripten
@@ -153,7 +164,9 @@ ASFLAGS   = $(MCFLAGS) -g $(TOPT) -Wa,-alms=$(LSTDIR)/$(notdir $(<:.s=.lst)) $(A
 ASXFLAGS  = $(MCFLAGS) -g $(TOPT) -Wa,-alms=$(LSTDIR)/$(notdir $(<:.S=.lst)) $(ADEFS)
 CFLAGS    = $(MCFLAGS) $(TOPT) $(OPT) $(COPT) $(CWARN) -Wa,-alms=$(LSTDIR)/$(notdir $(<:.c=.lst)) $(DEFS)
 CXXFLAGS  = $(MCFLAGS) $(TOPT) $(OPT) $(CXXOPT) $(CXXWARN) -Wa,-alms=$(LSTDIR)/$(notdir $(<:.cc=.lst)) $(DEFS)
-LDFLAGS   := $(MCFLAGS) $(TOPT) $(OPT) -nostartfiles $(LIBDIR) -Wl,-z,max-page-size=128,-Map=$(BUILDDIR)/$(PROJECT).map,--cref,--no-warn-mismatch,--library-path=$(RULESPATH),--script=$(LDSCRIPT) $(LDOPT)
+# Note: paths are passed as standalone arguments (not inside -Wl,...) so that MSYS2 on Windows
+#       converts them to native paths for the Windows toolchain.
+LDFLAGS   := $(MCFLAGS) $(TOPT) $(OPT) -nostartfiles $(LIBDIR) -Wl,-z,max-page-size=128,--cref,--no-warn-mismatch              -Xlinker -Map -Xlinker $(BUILDDIR)/$(PROJECT).map -L $(RULESPATH) -T $(LDSCRIPT) $(LDOPT)
 
 OUTFILES := $(BUILDDIR)/$(PROJECT).elf \
 	    $(BUILDDIR)/$(PROJECT).hex \
