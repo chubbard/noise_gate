@@ -71,7 +71,7 @@ const __unit_header genericfx_unit_header_t unit_header = {
 
       // Gate control for CC mode: gate is open at >= 50%. Assign it to Pad X/Y or Depth
       // on the device, then drive it with that control's MIDI CC (CC value >= 64 opens).
-      {0, 100, 0, 0, k_unit_param_type_percent, 0, 0, 0, {"GATE"}},
+      {0, 100, 0, 0, k_unit_param_type_percent, 0, 0, 0, {"CC GATE"}},
 
       {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
       {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
@@ -95,7 +95,7 @@ const __unit_header genericfx_unit_header_t unit_header = {
     // TYPE not assigned to a control, defaults to 1/4
     {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 5, 1},
 
-    // GATE not assigned by default (assign it on the device to use CC mode)
+    // CC GATE not assigned by default (assign it on the device to use CC mode)
     {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 100, 0},
 
     {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 0, 0},
