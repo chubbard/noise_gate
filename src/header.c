@@ -66,8 +66,9 @@ const __unit_header genericfx_unit_header_t unit_header = {
       // Reduction: gain applied while the gate is closed, 0 dB (no change) .. -144 dB (silence)
       {-144, 0, 0, -144, k_unit_param_type_db, 0, 0, 0, {"REDUCE"}},
 
-      // Gate type: tempo divisions, MIDI CC (via GATE), or XY pad touch
-      {0, 5, 0, 1, k_unit_param_type_strings, 0, 0, 0, {"TYPE"}},
+      // Gate type: tempo divisions (straight and dotted), MIDI CC (via GATE), or XY pad touch
+      // 0:1/2 1:1/4 2:1/4. 3:1/8 4:1/8. 5:1/16 6:1/16. 7:CC 8:PAD
+      {0, 8, 0, 1, k_unit_param_type_strings, 0, 0, 0, {"TYPE"}},
 
       // Gate control for CC mode: gate is open at >= 50%. Assign it to Pad X/Y or Depth
       // on the device, then drive it with that control's MIDI CC (CC value >= 64 opens).
@@ -93,7 +94,7 @@ const __unit_header genericfx_unit_header_t unit_header = {
     {k_genericfx_param_assign_depth, k_genericfx_curve_linear, k_genericfx_curve_unipolar, -144, 0, -144},
 
     // TYPE not assigned to a control, defaults to 1/4
-    {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 5, 1},
+    {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 8, 1},
 
     // CC GATE not assigned by default (assign it on the device to use CC mode)
     {k_genericfx_param_assign_none, k_genericfx_curve_linear, k_genericfx_curve_unipolar, 0, 100, 0},

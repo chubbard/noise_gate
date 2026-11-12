@@ -38,8 +38,9 @@
  *  Noise gate generic effect for the NTS-3 kaoss pad kit.
  *
  *  The gate is opened/closed by one of several sources (see GateType):
- *    - a steady beat at 1/2, 1/4, 1/8 or 1/16 notes of the current tempo
- *      (open for the first half of each division, closed for the second half),
+ *    - a steady beat at 1/2, 1/4, dotted 1/4, 1/8, dotted 1/8, 1/16 or dotted 1/16
+ *      notes of the current tempo (open for the first half of each division, closed for
+ *      the second half),
  *    - MIDI CC (open while the CC_GATE parameter is >= 50%; assign CC_GATE to Pad X/Y or
  *      Depth on the device and send that control's CC, e.g. CC 12/13/14; value >= 64 opens),
  *    - the XY pad (open while touched, closed on release).
@@ -72,8 +73,11 @@ public:
   {
     GATE_HALF = 0,
     GATE_QUARTER,
+    GATE_DOTTED_QUARTER,
     GATE_EIGHTH,
+    GATE_DOTTED_EIGHTH,
     GATE_SIXTEENTH,
+    GATE_DOTTED_SIXTEENTH,
     GATE_CC,
     GATE_PAD,
     NUM_GATE_TYPES,
@@ -141,8 +145,11 @@ public:
     static const char *gate_type_strings[NUM_GATE_TYPES] = {
         "1/2",
         "1/4",
+        "1/4.",
         "1/8",
+        "1/8.",
         "1/16",
+        "1/16.",
         "CC",
         "PAD",
     };
@@ -198,10 +205,10 @@ public:
 
     for (const float *out_end = out + frames * 2; out != out_end; in += 2, out += 2)
     {
-      // Advance the beat clock (in 16th notes, wrapped to one bar)
+      // Advance the beat clock (in 16th notes, wrapped to the clock cycle)
       pos += beat_inc;
-      if (pos >= 16.f)
-        pos -= 16.f;
+      if (pos >= kClockCycle)
+        pos -= kClockCycle;
 
       bool open;
       if (division > 0.f)
@@ -257,10 +264,16 @@ public:
   // Called on every 16th note: resync the beat clock to the host/clock position
   inline void tempo4ppqnTick(uint32_t counter) override final
   {
-    beat_pos_ = static_cast<float>(counter & 0xF);
+    beat_pos_ = static_cast<float>(counter % kClockCycleTicks);
   }
 
 private:
+  // The beat clock wraps every 48 16th notes (3 bars of 4/4): the shortest length that every
+  // division fits into a whole number of times, including the dotted ones (6, 3 and 1.5),
+  // so dotted patterns run across barlines without being cut short.
+  static constexpr uint32_t kClockCycleTicks = 48;
+  static constexpr float kClockCycle = 48.f;
+
   // One-pole coefficient that reaches ~99% of the target in `ms` milliseconds
   static float timeToCoef(int32_t ms)
   {
@@ -278,10 +291,16 @@ private:
       return 8.f;
     case GATE_QUARTER:
       return 4.f;
+    case GATE_DOTTED_QUARTER:
+      return 6.f;
     case GATE_EIGHTH:
       return 2.f;
+    case GATE_DOTTED_EIGHTH:
+      return 3.f;
     case GATE_SIXTEENTH:
       return 1.f;
+    case GATE_DOTTED_SIXTEENTH:
+      return 1.5f;
     default:
       return 0.f;
     }
@@ -294,7 +313,7 @@ private:
   float floor_gain_ = 0.f;
 
   float gain_ = 1.f;     // current smoothed gain
-  float beat_pos_ = 0.f; // position within a bar, in 16th notes [0, 16)
+  float beat_pos_ = 0.f; // position in the clock cycle, in 16th notes [0, 48)
   float beat_inc_ = 0.f; // 16th notes advanced per sample
 
   volatile bool touching_ = false;
