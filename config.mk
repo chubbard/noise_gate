@@ -2,7 +2,7 @@
 # Configuration for Makefile
 #
 
-PROJECT := noise_gate
+PROJECT := rhythm_gate
 PROJECT_TYPE := genericfx
 
 ##############################################################################
