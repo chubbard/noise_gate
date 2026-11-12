@@ -40,7 +40,7 @@
  *  The gate is opened/closed by one of several sources (see GateType):
  *    - a steady beat at 1/2, 1/4, 1/8 or 1/16 notes of the current tempo
  *      (open for the first half of each division, closed for the second half),
- *    - MIDI CC (open while the GATE parameter is >= 50%; assign GATE to Pad X/Y or
+ *    - MIDI CC (open while the CC_GATE parameter is >= 50%; assign CC_GATE to Pad X/Y or
  *      Depth on the device and send that control's CC, e.g. CC 12/13/14; value >= 64 opens),
  *    - the XY pad (open while touched, closed on release).
  *
@@ -64,7 +64,7 @@ public:
     RELEASE,
     REDUCE,
     GATE_TYPE,
-    GATE,
+    CC_GATE,
     NUM_PARAMS
   };
 
@@ -125,7 +125,7 @@ public:
         params_.gate_type = value;
       break;
 
-    case GATE:
+    case CC_GATE:
       params_.gate = value;
       cc_open_ = (value >= 50);
       break;
@@ -168,7 +168,7 @@ public:
     setParameter(ATTACK, params_.attack_ms);
     setParameter(RELEASE, params_.release_ms);
     setParameter(REDUCE, params_.reduce_db);
-    setParameter(GATE, params_.gate);
+    setParameter(CC_GATE, params_.gate);
     setTempo(120.f);
     reset();
   }
