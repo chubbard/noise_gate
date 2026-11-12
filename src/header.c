@@ -49,7 +49,7 @@ const __unit_header genericfx_unit_header_t unit_header = {
     .api = UNIT_API_VERSION,                                  // API version for which unit was built. See runtime.h
     .dev_id = 0x0,                                            // Developer ID. See https://github.com/korginc/logue-sdk/blob/master/developer_ids.md
     .unit_id = 0x0U,                                          // ID for this unit. Scoped within the context of a given dev_id.
-    .version = 0x00010000U,                                   // This unit's version: major.minor.patch (major<<16 minor<<8 patch).
+    .version = 0x00010100U,                                   // This unit's version: major.minor.patch (major<<16 minor<<8 patch).
     .name = "RHYTHM GATE",                                      // Name for this unit, will be displayed on device
     .num_params = 5,                                          // Number of valid parameter descriptors. (max. 8)
 
